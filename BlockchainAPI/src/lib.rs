@@ -1,15 +1,21 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, near_bindgen, setup_alloc};
+use near_sdk::{near_bindgen, setup_alloc};
 use near_sdk::{
-    collections::{ UnorderedMap,LookupMap },
-    AccountId, PublicKey, Balance, Promise,
-    json_types::{ U128, Base58PublicKey,U64},
+    collections::{ UnorderedMap},
+    json_types::{ U128,U64},
 };
 
 setup_alloc!();
 
-/*Estructuras auxiliares*/ 
+//Estructuras auxiliares
+
+/**
+ * Enum de tipo sensores
+ * Se definen los tipos de sensores
+ * es posible agregar mas tipos posteriormente.
+*/
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
+#[derive(Copy, Clone)]
 pub enum TipoSensor {
     Ph, 
     HumedadRelativa,
@@ -17,14 +23,20 @@ pub enum TipoSensor {
     Temperatura, 
 }
 
+/**
+ * Estructura rack
+ * Un rack sera contiene un conjunto de senores de diferente tipo.
+*/
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct Rack {
     id: U64,
     descripcion: String,
 }
 
-
-
+/**
+ * Estructura sensor
+ * Cada sensor está asociado a un unico rack y tienen un tipo especifico.
+*/
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct Sensor{
     id: U64,
@@ -33,6 +45,12 @@ pub struct Sensor{
     descripcion: String,
 }
 
+
+/**
+ * Estructura estado
+ * Es la parte estructura minima para el control de estado,
+ * se construye para indicar un valor a un sensor en especifico.
+*/
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct Estado{
     id_estado: U128,
@@ -40,6 +58,11 @@ pub struct Estado{
     valor: String,
 }
 
+/**
+ * Estructura actualizacion estado
+ * Se utiliza par encapsular una serie de estados
+ * sondeados en un tiempo en comun.
+*/
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct ActualizacionEstado{
     id: U128,
@@ -49,6 +72,7 @@ pub struct ActualizacionEstado{
 }
 
 
+//Estructura principal del sistema de red de sensores.
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct SistemaRedSensores {
@@ -60,18 +84,24 @@ pub struct SistemaRedSensores {
 
 #[near_bindgen]
 impl SistemaRedSensores {
+    /** 
+     * Constructor para SistemaRedSensores, inicializa el sistema con estructuras
+     * de datos vacias.
+    */
     #[init]
     pub fn new() -> Self {
         Self {
-            racks: UnorderedMap::new(b"".to_vec()),
-            sensores: UnorderedMap::new(b"".to_vec()),
-            estados: UnorderedMap::new(b"".to_vec()),
+            /*Nota: cada uno de las estructuras de datos llevan un identificador unico*/
+            racks: UnorderedMap::new(b"racks".to_vec()),
+            sensores: UnorderedMap::new(b"sensores".to_vec()),
+            estados: UnorderedMap::new(b"estados".to_vec()),
             update_estado: Vec::new(),
         }
     }
 
+    /** Inserta un nuevo rack en la estructura map de racks con validaciones */
     pub fn nuevo_rack(&mut self, id:U64, descripcion:String){
-        //verificar el id del rack
+        //valida el id del rack
         assert!(self.racks.get(&id).is_none(),"El id del rack ya está registrado");
         let nuevo_rack = Rack {
             id,
@@ -80,19 +110,13 @@ impl SistemaRedSensores {
         self.racks.insert(&id, &nuevo_rack);
     }
 
-    pub fn get_descripcion_rack(self,id:U64) -> String{
-        match self.racks.get(&id) {
-            None => String::from("None"),
-            Some(r) => r.descripcion
-        }
-    }
-
-    pub fn agregar_sensor(&mut self, id:U64,id_rack:U64,tipo_sensor:String,descripcion:String){
-        //verificar el id del rack.
-        assert!(self.racks.get(&id_rack).is_none(),"El id del rack no está registrado");
-        //verificar el id del sensor.
-        assert!(!self.sensores.get(&id).is_none(),"El id del sensor ya está registrado");
-        //verificar el tipo.
+    /*Inserta un nuevo sensor en la estructura map de sensores con validaciones*/
+    pub fn nuevo_sensor(&mut self, id:U64,id_rack:U64,tipo_sensor:String,descripcion:String){
+        //valida el id del rack.
+        assert!(!self.racks.get(&id_rack).is_none(),"El id del rack no está registrado");
+        //valida el id del sensor.
+        assert!(self.sensores.get(&id).is_none(),"El id del sensor ya está registrado");
+        //valida el tipo.
         let tipo:TipoSensor;
         match tipo_sensor.as_str() {
             "PH" => tipo = TipoSensor::Ph,
@@ -102,23 +126,43 @@ impl SistemaRedSensores {
             _=>panic!("Elije un tipo de sensor valido"),
         };
 
-        let nuevo_sensor = Sensor{
+        let n_sensor = Sensor{
             id,
             id_rack,
             tipo,
             descripcion,
         };
 
-        self.sensores.insert(&id,&nuevo_sensor);
+        self.sensores.insert(&id,&n_sensor);
+    }
+
+
+    /**Geters*/
+    pub fn get_descripcion_sensor(&self,id:U64) -> String{
+        match self.sensores.get(&id) {
+            None => String::from("None"),
+            Some(r) => r.descripcion
+        }
+    }
+
+    pub fn get_descripcion_rack(&self,id:U64) -> String{
+        match self.racks.get(&id) {
+            None => String::from("None"),
+            Some(r) => r.descripcion
+        }
     }
 }
 
-
+//Modulo de test unitarios.
 #[cfg(test)]
 mod tests {
     use super::*;
     use near_sdk::MockedBlockchain;
     use near_sdk::{testing_env, VMContext};
+
+    fn str(input: &str) -> String {
+        return String::from(input);
+    }
 
 
     fn get_context(input: Vec<u8>, is_view: bool) -> VMContext {
@@ -148,8 +192,8 @@ mod tests {
         testing_env!(context);
 
         let mut contract = SistemaRedSensores::new();
-        contract.nuevo_rack(U64(0),String::from("Test 1"));
-        assert_eq!(contract.get_descripcion_rack(U64(0)),String::from("Test 1"));
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        assert_eq!(contract.get_descripcion_rack(U64(0)),str("Test 1"));
     }
 
 
@@ -159,16 +203,37 @@ mod tests {
         let context = get_context(vec![], false);
         testing_env!(context);
         let mut contract = SistemaRedSensores::new();
-        contract.nuevo_rack(U64(0),String::from("Test 1"));
-        contract.nuevo_rack(U64(0),String::from("Test 2"));
-
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_rack(U64(0),str("Test 2"));
     }
 
+    
     #[test]
     fn agregar_un_sensor(){
         let context = get_context(vec![], false);
         testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Descripcion"));
+        assert_eq!(contract.get_descripcion_sensor(U64(0)),str("Descripcion"));
     }
-    
 
+    #[test]
+    #[should_panic(expected="El id del sensor ya está registrado")]
+    fn agregar_sensor_id_repetido(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Descripcion"));
+        contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Descripcion"));
+    }
+    #[test]
+    #[should_panic(expected="El id del rack no está registrado")]
+    fn agregar_sensor_rack_inexistente(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Descripcion"));
+    } 
 }

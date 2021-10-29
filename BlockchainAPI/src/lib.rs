@@ -7,6 +7,7 @@ use near_sdk::{
 
 setup_alloc!();
 
+
 //Estructuras auxiliares
 
 /**
@@ -136,6 +137,43 @@ impl SistemaRedSensores {
         self.sensores.insert(&id,&n_sensor);
     }
 
+    
+
+    pub fn actualizar_estado(&mut self,estadosString:Vec<String>){
+        let mut estadosNumber:Vec<String>;
+        //hacer un for en el vector de strings.
+        for cadena in estadosString.iter() {
+            //hacer un split del string del estado y separar en idsensor y valor
+
+            let values: Vec<&str> = cadena.split(':').collect();
+            assert!(values.len()==2,"Numero de parametros invalido.");
+            let id = values[0];
+            let value = values[1];
+            //validacion del id
+            self.validar_contenido(id, value);
+            //agregar el estado al arreglo de estados de blockchain y el ultimo numero a el estados number.
+        }
+        //empaquetar la actualizacion  de estado y agregar en el arreglo el arreglo de actualizaciones.
+    }
+
+    
+
+    fn validar_contenido(&self, id: &str,valor: &str){
+        match id.parse::<u64>() {
+            Ok(number) => match self.sensores.get(&U64(number)) {
+                Some(sensor)=> match sensor.tipo {
+                        TipoSensor::Ph => assert!(valor.parse::<u64>().is_ok(),"No se puede parsear el valor de Ph"), 
+                        TipoSensor::HumedadRelativa => assert!(valor.parse::<f32>().is_ok(),"No se puede parsear el valor de HumedadRelativa"),
+                        TipoSensor::OnOff => assert!(valor.parse::<bool>().is_ok(),"No se puede parsear el valor de OnOff"),
+                        TipoSensor::Temperatura => assert!(valor.parse::<f32>().is_ok(),"No se puede parsear el valor de Temperatura"),
+                    },
+                None => panic!("El id del sensor ya está registrado."),
+            },
+            Err(_) => panic!("El formato del id no es correcto."),
+        }
+    }
+    
+
 
     /**Geters*/
     pub fn get_descripcion_sensor(&self,id:U64) -> String{
@@ -236,4 +274,18 @@ mod tests {
         let mut contract = SistemaRedSensores::new();
         contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Descripcion"));
     } 
+
+    /*FALTA TERMINAR*/
+    #[test]
+    fn agregar_una_actualizacion(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Sensor para la parte alta"));
+        contract.nuevo_sensor(U64(1),U64(0),str("HUMEDAD_RELATIVA"),str("sensor colo rojo"));
+        contract.nuevo_sensor(U64(2),U64(0),str("ON_OFF"),str("sensor de la parte norte"));
+        contract.nuevo_sensor(U64(0),U64(0),str("TEMPERATURA"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("0:10"),str("0:10.0"),str()]);
+    }
 }

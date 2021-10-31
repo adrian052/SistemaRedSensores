@@ -1,10 +1,10 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{near_bindgen, setup_alloc};
 use near_sdk::{
-    collections::{ UnorderedMap},
-    json_types::{ U128,U64},
+    collections::{ UnorderedMap,UnorderedSet},
+    json_types::{U64,I64},
 };
-
+use chrono::{Utc};
 setup_alloc!();
 
 
@@ -54,7 +54,7 @@ pub struct Sensor{
 */
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct Estado{
-    id_estado: U128,
+    id_estado: U64,
     id_sensor: U64,
     valor: String,
 }
@@ -66,9 +66,9 @@ pub struct Estado{
 */
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct ActualizacionEstado{
-    id: U128,
-    timestamp: U64, 
-    estados: Vec<U128>,
+    id: U64,
+    timestamp: I64, 
+    estados: Vec<U64>,
     incidencia: Option<String> 
 }
 
@@ -79,8 +79,8 @@ pub struct ActualizacionEstado{
 pub struct SistemaRedSensores {
     racks: UnorderedMap<U64,Rack>,
     sensores: UnorderedMap<U64,Sensor>,
-    estados: UnorderedMap<U128,Estado>,
-    update_estado: Vec<ActualizacionEstado>
+    estados: UnorderedMap<U64,Estado>,
+    actualizaciones_estado: Vec<ActualizacionEstado>
 }
 
 #[near_bindgen]
@@ -96,7 +96,7 @@ impl SistemaRedSensores {
             racks: UnorderedMap::new(b"racks".to_vec()),
             sensores: UnorderedMap::new(b"sensores".to_vec()),
             estados: UnorderedMap::new(b"estados".to_vec()),
-            update_estado: Vec::new(),
+            actualizaciones_estado: Vec::new(),
         }
     }
 
@@ -139,25 +139,47 @@ impl SistemaRedSensores {
 
     
 
-    pub fn actualizar_estado(&mut self,estadosString:Vec<String>){
-        let mut estadosNumber:Vec<String>;
-        //hacer un for en el vector de strings.
-        for cadena in estadosString.iter() {
-            //hacer un split del string del estado y separar en idsensor y valor
-
+    /**
+     * Funcion de actualizar estado
+     * Funcion donde ingresas un vector strings de la forma <id>:<valor>
+     * y agregar el valor a la actualizacion de estados.
+     */
+    pub fn actualizar_estado(&mut self,estados_string:Vec<String>){
+        let mut estados_number:Vec<U64>  = Vec::new();
+        let mut sensores_actualizados: UnorderedSet<U64> = UnorderedSet::new(b"sensores_actualizados".to_vec());
+        for cadena in estados_string.iter() {
             let values: Vec<&str> = cadena.split(':').collect();
+            
             assert!(values.len()==2,"Numero de parametros invalido.");
             let id = values[0];
+            assert!(!sensores_actualizados.contains(&U64(id.parse::<u64>().unwrap())),"No se puede agregar dos actualizaciones del mismo sensor.");
+            sensores_actualizados.insert(&U64(id.parse::<u64>().unwrap()));
             let value = values[1];
-            //validacion del id
             self.validar_contenido(id, value);
             //agregar el estado al arreglo de estados de blockchain y el ultimo numero a el estados number.
+            let nuevo_estado =  Estado {
+                id_estado : U64(self.estados.len()),
+                id_sensor : U64(id.parse::<u64>().unwrap()),
+                valor: String::from(value),
+            };
+            self.estados.insert(&U64(self.estados.len()), &nuevo_estado);
+            estados_number.push(U64(self.estados.len()));
         }
-        //empaquetar la actualizacion  de estado y agregar en el arreglo el arreglo de actualizaciones.
+        let curr_size = self.estados.len();
+
+        let nueva_actualizacion = ActualizacionEstado {
+            id: U64(curr_size),
+            timestamp : I64(Utc::now().timestamp()), 
+            estados: estados_number,
+            incidencia: None,
+        };
+        self.actualizaciones_estado.push(nueva_actualizacion);
     }
 
     
-
+    /**
+     * Funcion auxiliar para validar el contenido de un estado con valores strings.
+     */
     fn validar_contenido(&self, id: &str,valor: &str){
         match id.parse::<u64>() {
             Ok(number) => match self.sensores.get(&U64(number)) {
@@ -188,6 +210,14 @@ impl SistemaRedSensores {
             None => String::from("None"),
             Some(r) => r.descripcion
         }
+    }
+
+    pub fn get_time_ultima_actualizacion(&self) -> I64 {
+        if self.actualizaciones_estado.len() == 0 {
+            I64(0)
+        }else{
+            return self.actualizaciones_estado[self.actualizaciones_estado.len()-1].timestamp;
+        }    
     }
 }
 
@@ -275,7 +305,6 @@ mod tests {
         contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Descripcion"));
     } 
 
-    /*FALTA TERMINAR*/
     #[test]
     fn agregar_una_actualizacion(){
         let context = get_context(vec![], false);
@@ -285,7 +314,66 @@ mod tests {
         contract.nuevo_sensor(U64(0),U64(0),str("PH"),str("Sensor para la parte alta"));
         contract.nuevo_sensor(U64(1),U64(0),str("HUMEDAD_RELATIVA"),str("sensor colo rojo"));
         contract.nuevo_sensor(U64(2),U64(0),str("ON_OFF"),str("sensor de la parte norte"));
-        contract.nuevo_sensor(U64(0),U64(0),str("TEMPERATURA"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("0:10"),str("0:10.0"),str()]);
+        contract.nuevo_sensor(U64(3),U64(0),str("TEMPERATURA"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("0:10"),str("1:10.0"),str("2:true"),str("3:25.3")]);
+        //validamos que la ultima actualizacion sea ahora
+        let ahora:I64 = I64(Utc::now().timestamp());
+        assert_eq!(contract.get_time_ultima_actualizacion(),ahora);
+    }
+
+    #[test]
+    #[should_panic(expected="No se puede parsear el valor de Temperatura")]
+    fn agregar_actualiazcion_temperatura_invalida(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_sensor(U64(3),U64(0),str("TEMPERATURA"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("3:false")]);
+    }
+
+    #[test]
+    #[should_panic(expected="No se puede parsear el valor de OnOff")]
+    fn agregar_actualizacion_onoff_invalido(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_sensor(U64(5),U64(0),str("ON_OFF"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("5:10.3")]);
+    }
+
+    #[test]
+    #[should_panic(expected="No se puede parsear el valor de HumedadRelativa")]
+    fn agregar_actualizacion_hr_invalido(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(100),str("Test 1"));
+        contract.nuevo_sensor(U64(3),U64(100),str("HUMEDAD_RELATIVA"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("3:false")]);
+    }
+
+
+    #[test]
+    #[should_panic(expected="No se puede parsear el valor de Ph")]
+    fn agregar_actualizacion_ph_invalido(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(99),str("Test 1"));
+        contract.nuevo_sensor(U64(343),U64(99),str("PH"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("343:10.3")]);
+    }
+
+    #[test]
+    #[should_panic(expected="No se puede agregar dos actualizaciones del mismo sensor.")]
+    fn agregar_dos_estados_mismo_sensor(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(99),str("Test 1"));
+        contract.nuevo_sensor(U64(10),U64(99),str("PH"),str("Sensor para la parte baja"));
+        contract.actualizar_estado(vec![str("10:10"),str("10:12")]);
     }
 }

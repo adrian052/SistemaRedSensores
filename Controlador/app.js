@@ -50,11 +50,10 @@ async function getHistorial(contractPromise,tipo){
 	const contract = await contractPromise;
 	//console.log(contract);
 	const res = await contract.get_historial(
-		{"tipo":"TEMPERATURA",
+		{"tipo":tipo,
 		"init_timpstamp": 0,
 		"last_timpstamp":Date.now()}
 		);
-	console.log(res);
 	return res;
 }
 
@@ -104,12 +103,11 @@ app.post('/estado/actualizar/',(req,res) => {
 	.catch(err => {res.status(500).send(err)});	
 });
 
-app.get('/estado/temperatura/',(req, res) => {
-	const response = getHistorial(getContract(),"TEMPERATURA");
-	console.log(response);
-	response
-	.then(historial => res.send(historial))
-	.catch(err => {res.status(500).send(err);console.log(err)});
+
+/**Hacer una sola ruta con variables */
+app.get('/estado/:tipo/',(req, res) => {
+	const response = getHistorial(getContract(),req.params.tipo.toUpperCase());
+	response.then(historial => res.send(historial)).catch(err => {res.status(500).send(err);console.log(err)});
 });
 
 //Nuevo sistema

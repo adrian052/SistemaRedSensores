@@ -21,10 +21,10 @@ const config = {
 const getContract = async function getContract(){
   const near = await connect(config);
   
-  const account = await near.account("EXAMPLE.testnet");
+  const account = await near.account("a_drian1.testnet");
   const contract = new nearAPI.Contract(
     account, // the account object that is connecting
-    "CONTRACT_ACCOUNT",
+    "dev-1636829530498-72918751240293",
     {
       // name of contract you're connecting to
       viewMethods: ["get_time_ultima_actualizacion","get_historial"], // view methods do not change state but usually return a value

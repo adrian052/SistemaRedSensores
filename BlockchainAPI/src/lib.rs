@@ -4,7 +4,8 @@ use near_sdk::{
     collections::{ UnorderedMap,UnorderedSet},
     json_types::{U64,I64},
 };
-use chrono::{Utc};
+use std::collections::BTreeMap;
+
 setup_alloc!();
 
 
@@ -16,7 +17,7 @@ setup_alloc!();
  * es posible agregar mas tipos posteriormente.
 */
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone,PartialEq)]
 pub enum TipoSensor {
     Ph, 
     HumedadRelativa,
@@ -67,7 +68,7 @@ pub struct Estado{
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
 pub struct ActualizacionEstado{
     id: U64,
-    timestamp: I64, 
+    timestamp: i64, 
     estados: Vec<U64>,
     incidencia: Option<String> 
 }
@@ -80,7 +81,14 @@ pub struct SistemaRedSensores {
     racks: UnorderedMap<U64,Rack>,
     sensores: UnorderedMap<U64,Sensor>,
     estados: UnorderedMap<U64,Estado>,
-    actualizaciones_estado: Vec<ActualizacionEstado>
+    actualizaciones_estado: Vec<ActualizacionEstado>,
+    number_hash: i128
+}
+
+impl Default for SistemaRedSensores {
+    fn default() -> Self {
+        panic!("Debe inicializarse antes de usarse.");
+    }
 }
 
 #[near_bindgen]
@@ -97,11 +105,12 @@ impl SistemaRedSensores {
             sensores: UnorderedMap::new(b"sensores".to_vec()),
             estados: UnorderedMap::new(b"estados".to_vec()),
             actualizaciones_estado: Vec::new(),
+            number_hash: 11,
         }
     }
 
     /** Inserta un nuevo rack en la estructura map de racks con validaciones */
-    pub fn nuevo_rack(&mut self, id:U64, descripcion:String){
+    pub fn nuevo_rack(&mut self, id:U64, descripcion:String) -> bool {
         //valida el id del rack
         assert!(self.racks.get(&id).is_none(),"El id del rack ya está registrado");
         let nuevo_rack = Rack {
@@ -109,10 +118,11 @@ impl SistemaRedSensores {
             descripcion,
         };
         self.racks.insert(&id, &nuevo_rack);
+        return true;
     }
 
     /*Inserta un nuevo sensor en la estructura map de sensores con validaciones*/
-    pub fn nuevo_sensor(&mut self, id:U64,id_rack:U64,tipo_sensor:String,descripcion:String){
+    pub fn nuevo_sensor(&mut self, id:U64,id_rack:U64,tipo_sensor:String,descripcion:String) -> bool {
         //valida el id del rack.
         assert!(!self.racks.get(&id_rack).is_none(),"El id del rack no está registrado");
         //valida el id del sensor.
@@ -135,6 +145,7 @@ impl SistemaRedSensores {
         };
 
         self.sensores.insert(&id,&n_sensor);
+        return true;
     }
 
     
@@ -144,9 +155,11 @@ impl SistemaRedSensores {
      * Funcion donde ingresas un vector strings de la forma <id>:<valor>
      * y agregar el valor a la actualizacion de estados.
      */
-    pub fn actualizar_estado(&mut self,estados_string:Vec<String>){
+    pub fn actualizar_estado(&mut self,timestamp_update:i64,estados_string:Vec<String>) -> bool {
+        let s: String = format!("{}{}","hash",self.number_hash);
+        self.number_hash+=11;
         let mut estados_number:Vec<U64>  = Vec::new();
-        let mut sensores_actualizados: UnorderedSet<U64> = UnorderedSet::new(b"sensores_actualizados".to_vec());
+        let mut sensores_actualizados: UnorderedSet<U64> = UnorderedSet::new(s.as_bytes().to_vec());
         for cadena in estados_string.iter() {
             let values: Vec<&str> = cadena.split(':').collect();
             
@@ -162,18 +175,20 @@ impl SistemaRedSensores {
                 id_sensor : U64(id.parse::<u64>().unwrap()),
                 valor: String::from(value),
             };
-            self.estados.insert(&U64(self.estados.len()), &nuevo_estado);
             estados_number.push(U64(self.estados.len()));
+            self.estados.insert(&U64(self.estados.len()), &nuevo_estado);
+            
         }
         let curr_size = self.estados.len();
 
         let nueva_actualizacion = ActualizacionEstado {
             id: U64(curr_size),
-            timestamp : I64(Utc::now().timestamp()), 
+            timestamp : timestamp_update, 
             estados: estados_number,
             incidencia: None,
         };
         self.actualizaciones_estado.push(nueva_actualizacion);
+        return true;
     }
 
     
@@ -194,7 +209,6 @@ impl SistemaRedSensores {
             Err(_) => panic!("El formato del id no es correcto."),
         }
     }
-    
 
 
     /**Geters*/
@@ -216,8 +230,44 @@ impl SistemaRedSensores {
         if self.actualizaciones_estado.len() == 0 {
             I64(0)
         }else{
-            return self.actualizaciones_estado[self.actualizaciones_estado.len()-1].timestamp;
+            return I64(self.actualizaciones_estado[self.actualizaciones_estado.len()-1].timestamp);
         }    
+    }
+
+    pub fn get_historial(&self,tipo:String,init_timpstamp:i64,last_timpstamp:i64) -> BTreeMap<i64,BTreeMap<u64,String>>{
+        let mut historial:BTreeMap<i64,BTreeMap<u64,String>> = BTreeMap::new();
+        let tipo_sensor:TipoSensor;
+        match tipo.as_ref() {
+            "PH" => tipo_sensor = TipoSensor::Ph,
+            "HUMEDAD_RELATIVA"=> tipo_sensor = TipoSensor::HumedadRelativa,
+            "ON_OFF" => tipo_sensor = TipoSensor::OnOff,
+            "TEMPERATURA" => tipo_sensor =TipoSensor::Temperatura,
+            _=>panic!("Elije un tipo de sensor valido"),
+        }
+
+        for actualizacion in self.actualizaciones_estado.iter() {
+            if actualizacion.timestamp>=init_timpstamp && actualizacion.timestamp<=last_timpstamp {
+                let mut aux:BTreeMap<u64,String> = BTreeMap::new();
+                for id_estado in actualizacion.estados.iter(){
+                    let estado = self.estados.get(id_estado);
+                    match estado {
+                        Some(valor) => {
+                            if self.sensores.get(&valor.id_sensor).unwrap().tipo == tipo_sensor{
+                                let buf:u64 = valor.id_sensor.into();
+                                aux.insert(buf,valor.valor);
+                            }
+                            
+                        },
+                        None => panic!("Error integridad: No se encuentra el estado registrado."),
+                    }
+                    
+                }  
+                if aux.len()>0{
+                   historial.insert(actualizacion.timestamp,aux);      
+                }
+            }    
+        }
+        return historial;
     }
 }
 
@@ -227,6 +277,7 @@ mod tests {
     use super::*;
     use near_sdk::MockedBlockchain;
     use near_sdk::{testing_env, VMContext};
+    use chrono::Utc;
 
     fn str(input: &str) -> String {
         return String::from(input);
@@ -315,10 +366,9 @@ mod tests {
         contract.nuevo_sensor(U64(1),U64(0),str("HUMEDAD_RELATIVA"),str("sensor colo rojo"));
         contract.nuevo_sensor(U64(2),U64(0),str("ON_OFF"),str("sensor de la parte norte"));
         contract.nuevo_sensor(U64(3),U64(0),str("TEMPERATURA"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("0:10"),str("1:10.0"),str("2:true"),str("3:25.3")]);
-        //validamos que la ultima actualizacion sea ahora
-        let ahora:I64 = I64(Utc::now().timestamp());
-        assert_eq!(contract.get_time_ultima_actualizacion(),ahora);
+        let ahora:i64 = Utc::now().timestamp();
+        contract.actualizar_estado(ahora,vec![str("0:10"),str("1:10.0"),str("2:true"),str("3:25.3")]);
+        assert_eq!(contract.get_time_ultima_actualizacion(),I64(ahora));
     }
 
     #[test]
@@ -329,7 +379,8 @@ mod tests {
         let mut contract = SistemaRedSensores::new();
         contract.nuevo_rack(U64(0),str("Test 1"));
         contract.nuevo_sensor(U64(3),U64(0),str("TEMPERATURA"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("3:false")]);
+        let ahora:i64 = Utc::now().timestamp();
+        contract.actualizar_estado(ahora,vec![str("3:false")]);
     }
 
     #[test]
@@ -340,7 +391,8 @@ mod tests {
         let mut contract = SistemaRedSensores::new();
         contract.nuevo_rack(U64(0),str("Test 1"));
         contract.nuevo_sensor(U64(5),U64(0),str("ON_OFF"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("5:10.3")]);
+        let ahora:i64 = Utc::now().timestamp();
+        contract.actualizar_estado(ahora,vec![str("5:10.3")]);
     }
 
     #[test]
@@ -351,7 +403,8 @@ mod tests {
         let mut contract = SistemaRedSensores::new();
         contract.nuevo_rack(U64(100),str("Test 1"));
         contract.nuevo_sensor(U64(3),U64(100),str("HUMEDAD_RELATIVA"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("3:false")]);
+        let ahora:i64 = Utc::now().timestamp();
+        contract.actualizar_estado(ahora,vec![str("3:false")]);
     }
 
 
@@ -363,7 +416,8 @@ mod tests {
         let mut contract = SistemaRedSensores::new();
         contract.nuevo_rack(U64(99),str("Test 1"));
         contract.nuevo_sensor(U64(343),U64(99),str("PH"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("343:10.3")]);
+        let ahora:i64 = Utc::now().timestamp();
+        contract.actualizar_estado(ahora,vec![str("343:10.3")]);
     }
 
     #[test]
@@ -374,6 +428,25 @@ mod tests {
         let mut contract = SistemaRedSensores::new();
         contract.nuevo_rack(U64(99),str("Test 1"));
         contract.nuevo_sensor(U64(10),U64(99),str("PH"),str("Sensor para la parte baja"));
-        contract.actualizar_estado(vec![str("10:10"),str("10:12")]);
+        let ahora:i64 = Utc::now().timestamp();
+        contract.actualizar_estado(ahora,vec![str("10:10"),str("10:12")]);
+    }
+
+
+    #[test]
+    fn obtener_historial_temperatura(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut contract = SistemaRedSensores::new();
+        contract.nuevo_rack(U64(0),str("Test 1"));
+        contract.nuevo_sensor(U64(0),U64(0),str("TEMPERATURA"),str("Descripcion"));
+        contract.nuevo_sensor(U64(1),U64(0),str("HUMEDAD_RELATIVA"),str("Descripcion"));
+        contract.actualizar_estado(0,vec![str("0:21.5")]);
+        contract.actualizar_estado(1,vec![str("0:20.3")]);
+        contract.actualizar_estado(2,vec![str("0:19.5")]);
+        contract.actualizar_estado(3,vec![str("1:19.5")]);
+        let ahora:i64 = Utc::now().timestamp();
+        let historial = contract.get_historial(str("TEMPERATURA"),0,ahora);
+        assert_eq!(historial.len(),3);
     }
 }

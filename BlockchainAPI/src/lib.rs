@@ -6,6 +6,9 @@ use near_sdk::{
 };
 use std::collections::BTreeMap;
 
+
+
+
 setup_alloc!();
 
 
@@ -267,7 +270,68 @@ impl SistemaRedSensores {
                 }
             }    
         }
+        return historial;   
+    }
+
+
+    pub fn get_historial_sensor(&self,id:U64,init_timpstamp:i64,last_timpstamp:i64) -> BTreeMap<i64,String>{
+        let mut historial = BTreeMap::new();
+        for actualizacion in self.actualizaciones_estado.iter() {
+            if actualizacion.timestamp>=init_timpstamp && actualizacion.timestamp<=last_timpstamp {
+                for id_estado in actualizacion.estados.iter(){
+                    let estado = self.estados.get(id_estado);
+                    match estado {
+                        Some(valor) => {
+                            if valor.id_sensor == id{
+                                historial.insert(actualizacion.timestamp,valor.valor);
+                            }    
+                        },
+                        None => panic!("Error integridad: No se encuentra el estado registrado."),
+                    }
+                }    
+            }
+        }    
         return historial;
+    }
+    
+    pub fn get_sensores_por_tipo(&self,tipo_sensor:String) -> Vec<U64> {
+        let mut ans:Vec<U64> = vec!();
+        let tipo:TipoSensor;
+        match tipo_sensor.as_str() {
+            "PH" => tipo = TipoSensor::Ph,
+            "HUMEDAD_RELATIVA"=> tipo = TipoSensor::HumedadRelativa,
+            "ON_OFF" => tipo = TipoSensor::OnOff,
+            "TEMPERATURA" => tipo =TipoSensor::Temperatura,
+            _=>panic!("Elije un tipo de sensor valido"),
+        };
+
+        for sensor in self.sensores.values() {
+            if sensor.tipo == tipo {
+                ans.push(sensor.id);
+            }
+        }
+        return ans;
+    }
+
+    pub fn get_informacion_sensor(&self,id:U64) -> BTreeMap<String,String> {
+        let mut informacion = BTreeMap::new();
+        match self.sensores.get(&id){
+            Some(sensor) => {
+                let id_sensor:u64= sensor.id.into();
+                let id_rack:u64= sensor.id_rack.into(); 
+                informacion.insert(String::from("id_sensor"),id_sensor.to_string());
+                informacion.insert(String::from("id_rack"),id_rack.to_string());
+                informacion.insert(String::from("descripcion"),sensor.descripcion);
+                match sensor.tipo {
+                    TipoSensor::Ph => {informacion.insert(String::from("tipo"),String::from("ph"));}, 
+                    TipoSensor::HumedadRelativa => {informacion.insert(String::from("tipo"),String::from("humedad_relativa"));},
+                    TipoSensor::OnOff => {informacion.insert(String::from("tipo"),String::from("on_off"));},
+                    TipoSensor::Temperatura => {informacion.insert(String::from("tipo"),String::from("temperatura"));},
+                } 
+                return informacion;
+            },
+            None => {return informacion;},
+        }
     }
 }
 

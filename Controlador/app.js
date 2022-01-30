@@ -2,6 +2,7 @@
 const express = require('express')
 const app = express()
 const port = 8000
+const url = require('url');
 
 const {getContract} = require('./config.js');
 const cors=require("cors");
@@ -38,7 +39,6 @@ async function nuevoSensor(contractPromise,idSensor,idRack,tipoSensor,descripcio
 }
 
 async function actualizarEstado(contractPromise,estados){
-	
 	const contract = await contractPromise;
 	let estadosString = [];
 	
@@ -54,13 +54,12 @@ async function actualizarEstado(contractPromise,estados){
 	return res;
 }
 
-async function getHistorial(contractPromise,tipo){
+async function getHistorial(contractPromise,tipo,initTimestamp=0,lastTimestamp=Date.now()){
 	const contract = await contractPromise;
-	//console.log(contract);
 	const res = await contract.get_historial(
 		{"tipo":tipo,
-		"init_timpstamp": 0,
-		"last_timpstamp":Date.now()}
+		"init_timpstamp": parseInt(initTimestamp),
+		"last_timpstamp":parseInt(lastTimestamp)}
 		);
 	return res;
 }
@@ -133,8 +132,6 @@ app.get('/sensores/tipo/:tipo', (req,res) => {
 	response.then(historial => res.send(historial)).catch(err => {res.status(500).send(err);console.log(err)});
 });
 
-
-
 //Actualizaciones
 app.post('/estado/actualizar/',(req,res) => {
 	const arregloEstados = req.body.arreglo_estados;
@@ -147,7 +144,18 @@ app.post('/estado/actualizar/',(req,res) => {
 
 //Obtener estados
 app.get('/estado/tipo/:tipo/',(req, res) => {
-	const response = getHistorial(getContract(),req.params.tipo.toUpperCase());
+	const initTimestamp = req.query.initTimestamp;
+	const lastTimestamp = req.query.lastTimestamp;
+	var response = undefined;
+	if(initTimestamp!=undefined && initTimestamp !=undefined) {
+		response = getHistorial(getContract(),req.params.tipo.toUpperCase(),initTimestamp,lastTimestamp);
+	}else if(initTimestamp!=undefined){
+		response = getHistorial(getContract(),req.params.tipo.toUpperCase(),initTimestamp);
+	}else if(lastTimestamp!=undefined){
+		response = getHistorial(getContract(),req.params.tipo.toUpperCase(),lastTimestamp=lastTimestamp);
+	}else{
+		response = getHistorial(getContract(),req.params.tipo.toUpperCase());
+	}
 	response.then(historial => res.send(historial)).catch(err => {res.status(500).send(err);console.log(err)});
 });
 

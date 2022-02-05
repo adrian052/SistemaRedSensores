@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from "react-router-dom";
 import LineChart from './LineChart';
-import {Container,Row,Col,Form,Button,Card} from 'react-bootstrap';
+import {Container,Row,Col,Form,Card} from 'react-bootstrap';
 import { useEffect,useState} from 'react';
 
 function timeConverter(timestamp){

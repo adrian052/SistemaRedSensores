@@ -6,6 +6,7 @@ const Navigation =() => {
   const [temperatura,setTemperatura]=useState([]);
   const [humedadRelativa,setHumedadRelativa]=useState([]);
   const [ph,setPh]=useState([]);
+  const [onOff,setOnOff] = useState([]);
 
   const getData=(tipo,funcion)=>{
 		fetch(`http://localhost:8000/sensores/tipo/${tipo}/`
@@ -29,6 +30,7 @@ const Navigation =() => {
 		getData("temperatura",setTemperatura);
 		getData("humedad_relativa",setHumedadRelativa);
 		getData("ph",setPh);
+    getData("on_off",setOnOff);
 	},[]);
 
     return (
@@ -52,6 +54,9 @@ const Navigation =() => {
       </NavDropdown>
       <NavDropdown title="On Off" id="collasible-nav-dropdown">
         <NavDropdown.Item href="#action/3.1">Porcentaje Promedio</NavDropdown.Item>
+        {onOff.map((elem)=>(
+        <NavDropdown.Item href={`/sensorOnOff/${elem}`}>Sensor {elem}</NavDropdown.Item>
+        ))}
       </NavDropdown>
       <NavDropdown title="pH" id="collasible-nav-dropdown">
         <NavDropdown.Item href="/promedio/ph/">Promedio</NavDropdown.Item>

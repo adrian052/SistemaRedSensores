@@ -64,12 +64,12 @@ async function getHistorial(contractPromise,tipo,initTimestamp=0,lastTimestamp=D
 	return res;
 }
 
-async function getHistorialSensor(contractPromise,sensor){
+async function getHistorialSensor(contractPromise,sensor,initTimestamp=0,lastTimestamp=Date.now()){
 	const contract = await contractPromise;
 	const res = await contract.get_historial_sensor(
 		{"id":sensor,
-		"init_timpstamp": 0,
-		"last_timpstamp":Date.now()}
+		"init_timpstamp": parseInt(initTimestamp),
+		"last_timpstamp":parseInt(lastTimestamp)}
 	);
 	return res;
 }
@@ -159,8 +159,19 @@ app.get('/estado/tipo/:tipo/',(req, res) => {
 	response.then(historial => res.send(historial)).catch(err => {res.status(500).send(err);console.log(err)});
 });
 
-app.get('/estado/sensor/:id_sensor/',(req,res) => {
-	const response = getHistorialSensor(getContract(),req.params.id_sensor);
+app.get('/estado/sensor/:id_sensor',(req,res) => {
+	const initTimestamp = req.query.initTimestamp;
+	const lastTimestamp = req.query.lastTimestamp;
+	var response = undefined;
+	if(initTimestamp!=undefined && initTimestamp !=undefined) {
+		response = getHistorialSensor(getContract(),req.params.id_sensor,initTimestamp,lastTimestamp);
+	}else if(initTimestamp!=undefined){
+		response = getHistorialSensor(getContract(),req.params.id_sensor,initTimestamp);
+	}else if(lastTimestamp!=undefined){
+		response = getHistorialSensor(getContract(),req.params.id_sensor,lastTimestamp=lastTimestamp);
+	}else{
+		response = getHistorialSensor(getContract(),req.params.id_sensor);
+	}
 	response.then(historial => res.send(historial)).catch(err => {res.status(500).send(err);console.log(err)});
 });
 

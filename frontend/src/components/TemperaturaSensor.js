@@ -17,12 +17,26 @@ function timeConverter(timestamp){
   }
 
 const TemperaturaSensor = () => {
+	const [initTimestamp,setInitTimestamp]= useState(0);
+	const [lastTimestamp,setLastTimestamp] = useState(Date.now()); 
     const {id} = useParams()
     const [data,setData]=useState([]);
 	const [informacion,setInformacion] = useState({})
 
 	const getData=()=>{
-		fetch('http://localhost:8000/estado/sensor/'+id,{
+		var url = 'http://localhost:8000/estado/sensor/'+id;
+		if(initTimestamp!=undefined || lastTimestamp!=undefined){
+			url+="?";
+			if(initTimestamp!=undefined){
+				url+="initTimestamp="+initTimestamp;
+				if(lastTimestamp!=undefined){
+					url+="&lastTimestamp="+lastTimestamp;
+				}
+			}else if(lastTimestamp){
+				url+="lastTimestamp="+lastTimestamp;
+			}
+		}
+		fetch(url,{
 		  headers : { 
 			'Content-Type': 'application/json',
 			'Accept': 'application/json'
@@ -46,19 +60,25 @@ const TemperaturaSensor = () => {
     useEffect(()=>{
 		getData();
 		getInformacion();
-	},[]);
+	},[initTimestamp,lastTimestamp]);
 
     return (
     <div><br/>
         <Container fluid={"sm"}>
 			<Row>
 				<Col xs={2}>
-					<Form.Control type="date" name='date_of_birth' />
+					<Form.Control type="date" name='date_of_birth' onChange={ e => {
+																				var year = e.target.value.split('-')[0];
+																				var month = e.target.value.split('-')[1]-1;
+																				var day = e.target.value.split('-')[2];
+																				setInitTimestamp((new Date(year,month,day).getTime()))}}/>
 				</Col>
 				<Col xs={2}>
-					<Form.Control type="date" name='date_of_birth' />
-				</Col><Col xs={2}>
-					<Button variant="outline-success">Filtrar</Button>
+					<Form.Control type="date" name='date_of_birth' onChange={e => {
+																				var year = e.target.value.split('-')[0];
+																				var month = (e.target.value.split('-')[1])-1;
+																				var day = e.target.value.split('-')[2];
+																				setLastTimestamp((new Date(year,month,day,23,59,59).getTime()))}}/>
 				</Col>
 			</Row>
 			<br/>

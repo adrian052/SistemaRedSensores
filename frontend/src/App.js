@@ -2,7 +2,8 @@ import './App.css';
 import GraficaPromedio from './components/GraficaPromedio'
 import TemperaturaSensor from './components/TemperaturaSensor'
 import GraficasOnOff from './components/GrafficasOnOff';
-import Navigation from './components/Navigation'
+import Navigation from './components/Navigation';
+import Main from './components/Main';
 
 import {
   	BrowserRouter,
@@ -22,7 +23,9 @@ const App = () => {
 			</Route>
 			<Route path="sensor/:id" element={<TemperaturaSensor/>}></Route>
 			<Route path="sensorOnOff/:id" element={<GraficasOnOff/>}></Route>
-		</Route>
+			<Route path="" element={<Main/>}></Route>
+	</Route>
+
 	</Routes>
 	</BrowserRouter>
 	</>

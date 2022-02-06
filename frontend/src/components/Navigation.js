@@ -53,7 +53,6 @@ const Navigation =() => {
         ))}
       </NavDropdown>
       <NavDropdown title="On Off" id="collasible-nav-dropdown">
-        <NavDropdown.Item href="#action/3.1">Porcentaje Promedio</NavDropdown.Item>
         {onOff.map((elem)=>(
         <NavDropdown.Item href={`/sensorOnOff/${elem}`}>Sensor {elem}</NavDropdown.Item>
         ))}
@@ -64,12 +63,6 @@ const Navigation =() => {
         <NavDropdown.Item href={`/sensor/${elem}`}>Sensor {elem}</NavDropdown.Item>
         ))}
       </NavDropdown>
-    </Nav>
-    <Nav>
-      <Nav.Link href="#deets">More deets</Nav.Link>
-      <Nav.Link eventKey={2} href="#memes">
-        Dank memes
-      </Nav.Link>
     </Nav>
   </Navbar.Collapse>
   </Container>

@@ -1,9 +1,13 @@
 import React from 'react';
+import {LoginButton} from './Login';
 import { useParams } from "react-router-dom";
 import LineChart from './LineChart';
 import {Container,Row,Col,Card,Button} from 'react-bootstrap';
 import { useEffect,useState} from 'react';
 import Form from "react-bootstrap/Form";
+import { useAuth0 } from '@auth0/auth0-react'
+import {Loading} from './Loading';
+import {_403} from './403'
 
 
 function timeConverter(timestamp){
@@ -17,6 +21,7 @@ function timeConverter(timestamp){
   }
 
 const TemperaturaSensor = () => {
+	const {user,isAuthenticated,isLoading} = useAuth0();
 	const [initTimestamp,setInitTimestamp]= useState(0);
 	const [lastTimestamp,setLastTimestamp] = useState(Date.now()); 
     const {id} = useParams()
@@ -61,6 +66,14 @@ const TemperaturaSensor = () => {
 		getData();
 		getInformacion();
 	},[initTimestamp,lastTimestamp]);
+
+	if(isLoading){
+		return(<Loading/>)
+	}
+
+	if(!isAuthenticated){
+		return(<_403/>)
+	}
 
     return (
     <div><br/>

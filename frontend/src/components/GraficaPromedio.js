@@ -1,8 +1,13 @@
 import React from 'react';
+import {LoginButton} from './Login';
 import { useParams } from "react-router-dom";
 import LineChart from './LineChart';
 import {Container,Row,Col,Form,Card} from 'react-bootstrap';
 import { useEffect,useState} from 'react';
+import { useAuth0 } from '@auth0/auth0-react'
+import {Loading} from './Loading';
+import {_403} from './403'
+
 
 function timeConverter(timestamp){
     var date = new Date(parseInt(timestamp));
@@ -29,6 +34,7 @@ function timeConverter(timestamp){
 }
 
 const GraficaPromedio  = ()  => {
+	const {user,isAuthenticated,isLoading} = useAuth0();
     const [data,setData]=useState([]);
 	const [initTimestamp,setInitTimestamp]= useState(0);
 	const [lastTimestamp,setLastTimestamp] = useState(Date.now()); 
@@ -69,6 +75,14 @@ const GraficaPromedio  = ()  => {
     useEffect(()=>{
 		getData();
 	},[initTimestamp,lastTimestamp]);
+
+	if(isLoading){
+		return(<Loading/>)
+	}
+
+	if(!isAuthenticated){
+		return(<_403/>)
+	}
 
     return (
         <div>

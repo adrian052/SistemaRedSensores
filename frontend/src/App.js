@@ -5,6 +5,7 @@ import GraficasOnOff from './components/GrafficasOnOff';
 import Navigation from './components/Navigation';
 import Main from './components/Main';
 
+
 import {
   	BrowserRouter,
 	Routes,
@@ -12,6 +13,7 @@ import {
 } from "react-router-dom";
 
 const App = () => {
+	
 	return (
 	<>
 	<Navigation/>

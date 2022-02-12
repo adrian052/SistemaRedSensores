@@ -8,6 +8,7 @@ import Form from "react-bootstrap/Form";
 import { useAuth0 } from '@auth0/auth0-react'
 import {Loading} from './Loading';
 import {_403} from './403'
+import {Foco}  from './Foco';
 
 const countOccurrences = (arr, val) => arr.reduce((a, v) => (v === val ? a + 1 : a), 0);
 
@@ -99,7 +100,9 @@ const GraficasOnOff = () => {
     			<Col>
 				<Card body>
                     <Row>
-                    <Col sm={4}></Col>
+                    <Col sm={4}><Foco ultima={timeConverter(Object.keys(data)[Object.keys(data).length - 1])}
+								encendido={Object.values(data)[Object.values(data).length - 1]}
+								/></Col>
                     <Col sm={4}><PieChart 
 						label={`Sensor #${id}`}
 						labels={Object.keys(data).map((key)=>timeConverter(key))}

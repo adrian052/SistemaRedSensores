@@ -3,7 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {Button,Container} from 'react-bootstrap';
 
 
-export const _403 = () => {
+export const Error403 = () => {
     const {loginWithRedirect} = useAuth0();
 
     return (

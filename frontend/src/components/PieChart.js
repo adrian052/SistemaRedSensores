@@ -17,7 +17,6 @@ const PieChart = ({title,on,off}) => {
           }
         ]
       };
-    let chartInstance = null;
     return (
         <Pie
         data={data}
@@ -33,9 +32,6 @@ const PieChart = ({title,on,off}) => {
                 
             }
         }}                 
-        ref={input => {
-          chartInstance = input;
-        }}
         />
     );
 }

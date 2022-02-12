@@ -1,12 +1,11 @@
 import React from 'react';
-import {LoginButton} from './Login';
 import { useParams } from "react-router-dom";
 import LineChart from './LineChart';
 import {Container,Row,Col,Form,Card} from 'react-bootstrap';
 import { useEffect,useState} from 'react';
 import { useAuth0 } from '@auth0/auth0-react'
 import {Loading} from './Loading';
-import {_403} from './403'
+import {Error403} from './403'
 
 
 function timeConverter(timestamp){
@@ -34,7 +33,7 @@ function timeConverter(timestamp){
 }
 
 const GraficaPromedio  = ()  => {
-	const {user,isAuthenticated,isLoading} = useAuth0();
+	const {isAuthenticated,isLoading} = useAuth0();
     const [data,setData]=useState([]);
 	const [initTimestamp,setInitTimestamp]= useState(0);
 	const [lastTimestamp,setLastTimestamp] = useState(Date.now()); 
@@ -42,11 +41,11 @@ const GraficaPromedio  = ()  => {
 	const getData=()=>{
 		var url = `http://localhost:8000/estado/tipo/${tipo}/`;
 		console.log(initTimestamp,lastTimestamp);
-		if(initTimestamp!=undefined || lastTimestamp!=undefined){
+		if(initTimestamp!==undefined || lastTimestamp!==undefined){
 			url+="?";
-			if(initTimestamp!=undefined){
+			if(initTimestamp!==undefined){
 				url+="initTimestamp="+initTimestamp;
-				if(lastTimestamp!=undefined){
+				if(lastTimestamp!==undefined){
 					url+="&lastTimestamp="+lastTimestamp;
 				}
 			}else if(lastTimestamp){
@@ -74,14 +73,14 @@ const GraficaPromedio  = ()  => {
 
     useEffect(()=>{
 		getData();
-	},[initTimestamp,lastTimestamp]);
+	},[initTimestamp,lastTimestamp]);// eslint-disable-line
 
 	if(isLoading){
 		return(<Loading/>)
 	}
 
 	if(!isAuthenticated){
-		return(<_403/>)
+		return(<Error403/>)
 	}
 
     return (

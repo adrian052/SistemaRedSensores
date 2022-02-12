@@ -2,15 +2,15 @@ import React from "react";
 import {Container,Row,Col,Card,Button} from 'react-bootstrap';
 import { useAuth0 } from '@auth0/auth0-react'
 import {Loading} from './Loading';
-import {_403} from './403'
+import {Error403} from './403'
 
 const Configuracion = () => {
-    const {user,isAuthenticated,isLoading} = useAuth0();
+    const {isAuthenticated,isLoading} = useAuth0();
     if(isLoading){
 		return(<Loading/>)
 	}
 	if(!isAuthenticated){
-		return(<_403/>)
+		return(<Error403/>)
 	}
 
     return (

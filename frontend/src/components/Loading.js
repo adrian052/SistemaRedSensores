@@ -1,5 +1,5 @@
 import React from 'react';
-import {Container,Row,Col,Form,Card} from 'react-bootstrap';
+import {Container,Row,Col} from 'react-bootstrap';
 import Spinner from 'react-bootstrap/Spinner'
 export const Loading = () => {
     return(

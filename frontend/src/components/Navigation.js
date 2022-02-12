@@ -1,4 +1,4 @@
-import react from 'react';
+import React from 'react';
 import {Navbar,Nav,Container,NavDropdown} from 'react-bootstrap'
 import { useEffect,useState} from 'react';
 import { useAuth0 } from '@auth0/auth0-react'

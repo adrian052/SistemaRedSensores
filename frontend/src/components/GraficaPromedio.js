@@ -108,7 +108,7 @@ const GraficaPromedio  = ()  => {
     	    		<Col>
 						<Card body>
 							<LineChart 
-								title={`Grafica de ${tipo}`}
+								title={`Gráfica de ${tipo}`}
 								label="Promedio"
 		    					labels={Object.keys(data).map((key)=>timeConverter(key))}
 		    					data = {Object.keys(data).map((key)=>data[key])}

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Container} from 'react-bootstrap';
+import {Container,Card,Row} from 'react-bootstrap';
 import {LoginButton} from './Login';
 import {LogoutButton} from './Logout';
 import { useAuth0 } from '@auth0/auth0-react'
@@ -15,19 +15,41 @@ const Main = () => {
     if (isAuthenticated){
         return (
             <Container>
-                <div>
-                    <h1>Bienvenido {user.name}</h1>
-                </div>
-                <LogoutButton></LogoutButton>
-            </Container>
+            <br/>
+            <Card>
+                <br/>
+                <Row>
+                    <div>
+                    <h1 align="center">Bienvenido {user.name}</h1>
+                    </div>
+                </Row>
+                <Row>
+                    <div align="center">
+                        <LogoutButton></LogoutButton>
+                    </div>
+                </Row>
+                <br/>
+            </Card>    
+        </Container>
         );
     }else{
         return (
             <Container>
-                <div>
-                    <h1>Bienvenido, puedes hacer login en el boton de abajo...</h1>
-                </div>
-                <LoginButton></LoginButton>
+                <br/>
+                <Card>
+                    <br/>
+                    <Row>
+                        <div>
+                            <h1 align="center">Puedes hacer login en el botón de abajo.</h1>
+                        </div>
+                    </Row>
+                    <Row>
+                        <div align="center">
+                            <LoginButton></LoginButton>
+                        </div>
+                    </Row>
+                    <br/>
+                </Card>    
             </Container>
         );
     }

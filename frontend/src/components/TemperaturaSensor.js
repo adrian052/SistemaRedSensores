@@ -113,7 +113,7 @@ const TemperaturaSensor = () => {
 						<b>Id Sensor:</b> {informacion.id_sensor}<br/>
 						<b>Id Rack:</b> {informacion.id_rack}<br/>
 						<b>Tipo:</b> {informacion.tipo}<br/>
-						<b>Descripcion:</b> {informacion.descripcion}<br/>	
+						<b>Descripción:</b> {informacion.descripcion}<br/>	
 					</Card>
 				</Col>
   			</Row>

@@ -7,7 +7,7 @@ export const Foco = ({ultima,encendido}) => {
         <Container>
                 {encendido==='true' &&<Row><div><img src={iencendido} width="40" height="50" alt="encendido"/></div></Row>}
                 {encendido==='false' &&<Row><div><img src={iapagado} width="50" height="50" alt="apagado"/></div></Row>}
-                <Row>Ultima actualizacion:<br/>{ultima}</Row>           
+                <Row>Última actualización:<br/>{ultima}</Row>           
         </Container>   
     )
 };

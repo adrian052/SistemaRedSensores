@@ -54,7 +54,7 @@ const Navigation =() => {
         <NavDropdown.Item href={`/sensor/${elem}`}>Sensor {elem}</NavDropdown.Item>
         ))}
       </NavDropdown>
-      <NavDropdown title="Humedad Relativa" id="collasible-nav-dropdown">
+      <NavDropdown title="Humedad relativa" id="collasible-nav-dropdown">
         <NavDropdown.Item href="/promedio/humedad_relativa/">Promedio</NavDropdown.Item>
         {humedadRelativa.map((elem)=>(
         <NavDropdown.Item href={`/sensor/${elem}`}>Sensor {elem}</NavDropdown.Item>
@@ -73,7 +73,7 @@ const Navigation =() => {
       </NavDropdown>
     </Nav>
     <Nav>
-      <Nav.Link href="/configuracion/">Configuracion</Nav.Link>
+      <Nav.Link href="/configuracion/">Configuración</Nav.Link>
       <Nav.Link onClick={() => logout({ returnTo: window.location.origin })}>Logout</Nav.Link>
     </Nav></>}
   </Navbar.Collapse>

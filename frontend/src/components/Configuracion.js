@@ -26,7 +26,7 @@ const Configuracion = () => {
                     </h3>
                     <br/>
                     <div align="center">
-                    <label>Realizar actualizacion manual.</label><br/><br/>   
+                    <label>Realizar actualización manual.</label><br/><br/>   
                     <Form.Select size="sm">
                         <option>Sensor 1</option>
                         <option>Sensor 2</option>
@@ -46,10 +46,10 @@ const Configuracion = () => {
                 <Col>
                 
                     <h3 align="center">
-                        Automatico
+                        Automático
                     </h3>
                     <div align="center">
-                    <label>Realizar actualizacion periodicamente.</label><br/>   
+                    <label>Realizar actualización periódicamente.</label><br/>   
                     <Form.Select size="sm">
                         <option>Sensor 1</option>
                         <option>Sensor 2</option>

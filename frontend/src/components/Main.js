@@ -1,9 +1,10 @@
 import React from 'react';
-import {Container,Card,Row} from 'react-bootstrap';
+import {Container,Card,Row,Col} from 'react-bootstrap';
 import {LoginButton} from './Login';
 import {LogoutButton} from './Logout';
 import { useAuth0 } from '@auth0/auth0-react'
 import {Loading} from './Loading';
+import principal from '../images/principal.png';
 
 const Main = () => {
     const {user,isAuthenticated,isLoading} = useAuth0();
@@ -29,6 +30,17 @@ const Main = () => {
                     </div>
                 </Row>
                 <br/>
+                <Row>
+                    <Col sm={3}>
+                    </Col>
+                    <Col>
+                        <div>
+                            <img src={principal} width="600" height="400" alt="encendido"/>
+                        </div>
+                    </Col>
+                    
+                    <br/>
+                </Row>
             </Card>    
         </Container>
         );
@@ -49,6 +61,18 @@ const Main = () => {
                         </div>
                     </Row>
                     <br/>
+                    <Row>
+                        <Col sm={3}>
+                        </Col>
+                        <Col>
+                            <div>
+                                <img src={principal} width="600" height="400" alt="encendido"/>
+                            </div>
+                        </Col>
+                        
+                        <br/>
+                    </Row>
+                    
                 </Card>    
             </Container>
         );

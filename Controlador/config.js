@@ -21,13 +21,13 @@ const config = {
 const getContract = async function getContract(){
   const near = await connect(config);
   
-  const account = await near.account("dev-1637623325756-73718762391902");
+  const account = await near.account("dev-1646608581747-84976558686748");
   const contract = new nearAPI.Contract(
     account, // the account object that is connecting
-    "dev-1637623325756-73718762391902",
+    "dev-1646608581747-84976558686748",
     {
       // name of contract you're connecting to
-      viewMethods: ["get_time_ultima_actualizacion","get_historial","get_historial_sensor","get_sensores_por_tipo","get_informacion_sensor"],
+      viewMethods: ["get_time_ultima_actualizacion","get_historial","get_historial_sensor","get_sensores_por_tipo","get_informacion_sensor","get_lista_sensores","get_lista_racks"],
       // view methods do not change state but usually return a value
       changeMethods: ["new","nuevo_rack","nuevo_sensor","actualizar_estado"], // change methods modify state
       sender: account, // account object to initialize and sign transactions.

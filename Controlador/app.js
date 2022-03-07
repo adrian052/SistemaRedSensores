@@ -30,6 +30,7 @@ async function nuevoRack(contractPromise,id,descripcion){
 
 async function nuevoSensor(contractPromise,idSensor,idRack,tipoSensor,descripcion){
 	const contract = await contractPromise;
+	console.log(tipoSensor)
 	const res = await contract.nuevo_sensor({args:{"id":idSensor,
 											"id_rack":idRack,
 											"tipo_sensor":tipoSensor,
@@ -80,6 +81,18 @@ async function getSensoresPorTipo(contractPromise,tipo){
 	return res;
 }
 
+async function getListaSensores(contractPromise){
+	const contract = await contractPromise;
+	const res = await contract.get_lista_sensores();
+	return res
+}
+
+async function getListaRacks(contractPromise){
+	const contract = await contractPromise;
+	const res = await contract.get_lista_racks();
+	return res
+}
+
 async function getSensorInformacion(contractPromise,id){
 	const contract = await contractPromise;
 	const res = await contract.get_informacion_sensor({"id":id});
@@ -106,7 +119,7 @@ app.post('/rack/nuevo', (req,res) => {
   	const response = nuevoRack(getContract(),id,descripcion);
   	response
 	.then(_ => res.status(201).send("Nuevo rack registrado."))
-	.catch(err => {res.status(500).send(err)});
+	.catch(err => {res.status(500).send(err);});
 });
 
 
@@ -116,9 +129,9 @@ app.post('/sensor/nuevo', (req,res) => {
 	const idSensor = req.body.id_sensor;
 	const tipoSensor = req.body.tipo;
 	const descripcion = req.body.descripcion;
-	const response = nuevoSensor(getContract(),idSensor,idRack,tipoSensor,descripcion);
+	const response = nuevoSensor(getContract(),idSensor,idRack,tipoSensor.toUpperCase(),descripcion);
 	response
-	.then(_ => res.status(201).send("Nuevo sensor registrado."))
+	.then(_ => {console.log("Nuevo sensor registrado");res.status(201).send("Nuevo sensor registrado.");})
 	.catch(err => {res.status(500).send(err)});
 });
 
@@ -131,6 +144,16 @@ app.get('/sensores/tipo/:tipo', (req,res) => {
 	const response = getSensoresPorTipo(getContract(),req.params.tipo.toUpperCase());
 	response.then(historial => res.send(historial)).catch(err => {res.status(500).send(err);console.log(err)});
 });
+
+app.get('/lista/sensores/', (req,res)=>{
+	const response = getListaSensores(getContract());
+	response.then(lista => res.send(lista)).catch(err => {res.status(500).send(err);console.log(err)});
+})
+
+app.get('/lista/racks/', (req,res)=>{
+	const response = getListaRacks(getContract());
+	response.then(lista => res.send(lista)).catch(err => {res.status(500).send(err);console.log(err)});
+})
 
 //Actualizaciones
 app.post('/estado/actualizar/',(req,res) => {

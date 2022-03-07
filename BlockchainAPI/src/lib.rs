@@ -333,6 +333,39 @@ impl SistemaRedSensores {
             None => {return informacion;},
         }
     }
+
+    pub fn get_lista_sensores(&self) -> Vec<BTreeMap<String,String>> {
+        let mut answer_list = Vec::<BTreeMap::<String,String>>::new();
+        for sensor in self.sensores.values() {
+            let id_sensor:u64= sensor.id.into();
+            let id_rack:u64= sensor.id_rack.into(); 
+            let mut sensor_tree = BTreeMap::<String,String>::new();
+            sensor_tree.insert(String::from("id"),id_sensor.to_string());
+            sensor_tree.insert(String::from("id_rack"),id_rack.to_string());
+            sensor_tree.insert(String::from("descripcion"),sensor.descripcion);
+            match sensor.tipo {
+                TipoSensor::Ph => {sensor_tree.insert(String::from("tipo"),String::from("ph"));}, 
+                TipoSensor::HumedadRelativa => {sensor_tree.insert(String::from("tipo"),String::from("humedad_relativa"));},
+                TipoSensor::OnOff => {sensor_tree.insert(String::from("tipo"),String::from("on_off"));},
+                TipoSensor::Temperatura => {sensor_tree.insert(String::from("tipo"),String::from("temperatura"));},
+            } 
+            answer_list.insert(0,sensor_tree);
+        }
+        return answer_list;
+    }
+
+    pub fn get_lista_racks(&self) -> Vec<BTreeMap<String,String>> {
+        let mut answer_list = Vec::<BTreeMap::<String,String>>::new();
+        for rack in self.racks.values() {
+            let id:u64= rack.id.into();
+            let mut sensor_tree = BTreeMap::<String,String>::new();
+            sensor_tree.insert(String::from("id"),id.to_string());
+            sensor_tree.insert(String::from("descripcion"),rack.descripcion);
+            
+            answer_list.insert(0,sensor_tree);
+        }
+        return answer_list;
+    }
 }
 
 //Modulo de test unitarios.

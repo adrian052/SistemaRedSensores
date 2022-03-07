@@ -48,6 +48,14 @@ const Navigation =() => {
     { isAuthenticated && 
     <>
     <Nav className="me-auto">
+      <NavDropdown title="Sensores" id="collasible-nav-dropdown">
+        <NavDropdown.Item href={`/nuevo/sensor`}>Nuevo</NavDropdown.Item> 
+        <NavDropdown.Item href={`/lista/sensor`}>Lista</NavDropdown.Item> 
+      </NavDropdown>
+      <NavDropdown title="Racks" id="collasible-nav-dropdown">
+        <NavDropdown.Item href={`/nuevo/rack`}>Nuevo</NavDropdown.Item> 
+        <NavDropdown.Item href={`/lista/rack`}>Lista</NavDropdown.Item> 
+      </NavDropdown>
       <NavDropdown title="Temperatura" id="collasible-nav-dropdown">
         <NavDropdown.Item href="/promedio/temperatura/">Promedio</NavDropdown.Item>
         {temperatura.map((elem)=>(

@@ -9,6 +9,7 @@ import {Loading} from './Loading';
 import {Error403} from './403'
 
 
+
 function timeConverter(timestamp){
     var date = new Date(parseInt(timestamp));
     return "["+date.getDate()+
@@ -84,7 +85,7 @@ const TemperaturaSensor = () => {
 																				var year = e.target.value.split('-')[0];
 																				var month = e.target.value.split('-')[1]-1;
 																				var day = e.target.value.split('-')[2];
-																				setInitTimestamp((new Date(year,month,day).getTime()))}}/>
+																				setInitTimestamp((new Date(year,month,day).getTime()))}}/><br/>
 				</Col>
 				<Col xs={2}>
 					<Form.Control type="date" name='date_of_birth' onChange={e => {

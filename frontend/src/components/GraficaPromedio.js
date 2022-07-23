@@ -6,6 +6,7 @@ import { useEffect,useState} from 'react';
 import { useAuth0 } from '@auth0/auth0-react'
 import {Loading} from './Loading';
 import {Error403} from './403'
+import TimePicker from 'react-bootstrap-time-picker';
 
 
 function timeConverter(timestamp){
@@ -35,8 +36,8 @@ function timeConverter(timestamp){
 const GraficaPromedio  = ()  => {
 	const {isAuthenticated,isLoading} = useAuth0();
     const [data,setData]=useState([]);
-	const [initTimestamp,setInitTimestamp]= useState(0);
-	const [lastTimestamp,setLastTimestamp] = useState(Date.now()); 
+	const [initTimestamp,setInitTimestamp]= useState();
+	const [lastTimestamp,setLastTimestamp] = useState(); 
 	const {tipo} = useParams();
 	const getData=()=>{
 		var url = `http://localhost:8000/estado/tipo/${tipo}/`;
@@ -94,6 +95,7 @@ const GraficaPromedio  = ()  => {
 																				var month = e.target.value.split('-')[1]-1;
 																				var day = e.target.value.split('-')[2];
 																				setInitTimestamp((new Date(year,month,day).getTime()))}}/>
+						{initTimestamp!==undefined && <TimePicker start="00:00" end="23:00" step={60} />}
 					</Col>
 					<Col xs={2}>
 						<Form.Control type="date" name='date_of_birth' onChange={e => {
@@ -101,6 +103,7 @@ const GraficaPromedio  = ()  => {
 																				var month = (e.target.value.split('-')[1])-1;
 																				var day = e.target.value.split('-')[2];
 																				setLastTimestamp((new Date(year,month,day,23,59,59).getTime()))}}/>
+						{lastTimestamp!==undefined && <TimePicker start="00:00" end="23:00" step={60} />}
 					</Col>
 				</Row>
 				<br/>

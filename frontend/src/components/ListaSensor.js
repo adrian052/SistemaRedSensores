@@ -11,7 +11,7 @@ const ListaSensor = () => {
     const {isAuthenticated,isLoading} = useAuth0();
     const [data,setData]= useState([]);
     const getData=()=>{
-      fetch('http://localhost:8000/lista/sensores/',{
+      fetch('https://localhost:8000/lista/sensores/',{
         headers : { 
         'Content-Type': 'application/json',
         'Accept': 'application/json'

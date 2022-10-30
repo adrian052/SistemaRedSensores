@@ -19,7 +19,7 @@ const NuevoSensor = () => {
             return 
         }
 
-        var url = 'http://localhost:8000/sensor/nuevo/';
+        var url = 'https://localhost:8000/sensor/nuevo/';
         const params = {
             id_sensor: id,
             id_rack: idRack,

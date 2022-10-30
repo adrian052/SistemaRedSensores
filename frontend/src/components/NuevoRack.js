@@ -17,7 +17,7 @@ const NuevoRack = () => {
             return 
         }
 
-        var url = 'http://localhost:8000/rack/nuevo/';
+        var url = 'https://localhost:8000/rack/nuevo/';
         const params = {
             id: id,
             descripcion: descirpcion 

@@ -207,7 +207,7 @@ impl SistemaRedSensores {
                         TipoSensor::OnOff => assert!(valor.parse::<bool>().is_ok(),"No se puede parsear el valor de OnOff"),
                         TipoSensor::Temperatura => assert!(valor.parse::<f32>().is_ok(),"No se puede parsear el valor de Temperatura"),
                     },
-                None => panic!("El formato no es correcto"),
+                None => panic!("El id del sensor ya está registrado."),
             },
             Err(_) => panic!("El formato del id no es correcto."),
         }

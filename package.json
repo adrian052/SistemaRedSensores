@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "update:blockchain": "cd BlockchainAPI && ./update_blockchain.sh",
-    "reset:blockchain": "cd BlockchainAPI && ./reset.sh"
+    "deploy:dev": "cd BlockchainAPI && ./dev-deploy.sh"
   },
   "repository": {
     "type": "git",
@@ -17,8 +16,5 @@
   "bugs": {
     "url": "https://github.com/adrian052/SistemaRedSensores/issues"
   },
-  "homepage": "https://github.com/adrian052/SistemaRedSensores#readme",
-  "dependencies": {
-    "npm": "^6.14.8"
-  }
+  "homepage": "https://github.com/adrian052/SistemaRedSensores#readme"
 }

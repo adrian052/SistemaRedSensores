@@ -3,10 +3,6 @@ const express = require('express')
 const app = express()
 const port = 8000
 const url = require('url');
-const fs = require('fs')
-const https = require('https')
-var privateKey = fs.readFileSync("./https/key.pem")
-var certificate = fs.readFileSync("./https/cert.pem")
 
 const {getContract} = require('./config.js');
 const cors=require("cors");
@@ -211,10 +207,6 @@ app.post('/init/',(req,res)=>{
 });
 
 
-credentials = {"key": privateKey, "cert":certificate}
-
-httpsServer = https.createServer(credentials,app);
-
-httpsServer.listen(port, () => {
+app.listen(port, () => {
   	console.log(`Blockchain API listening on port http://localhost:${port}`);
 });

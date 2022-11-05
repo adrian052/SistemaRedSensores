@@ -40,7 +40,7 @@ const GraficaPromedio  = ()  => {
 	const [lastTimestamp,setLastTimestamp] = useState(); 
 	const {tipo} = useParams();
 	const getData=()=>{
-		var url = `https://localhost:8000/estado/tipo/${tipo}/`;
+		var url = `http://localhost:8000/estado/tipo/${tipo}/`;
 		console.log(initTimestamp,lastTimestamp);
 		if(initTimestamp!==undefined || lastTimestamp!==undefined){
 			url+="?";

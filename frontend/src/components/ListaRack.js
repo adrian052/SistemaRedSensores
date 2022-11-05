@@ -11,7 +11,7 @@ const ListaRack = () => {
     const {isAuthenticated,isLoading} = useAuth0();
     const [data,setData]= useState([]);
     const getData=()=>{
-      fetch('https://localhost:8000/lista/racks/',{
+      fetch('http://localhost:8000/lista/racks/',{
         headers : { 
         'Content-Type': 'application/json',
         'Accept': 'application/json'

@@ -30,7 +30,7 @@ const GraficasOnOff = () => {
 	const [informacion,setInformacion] = useState({})
 
 	const getData=()=>{
-		var url = 'https://localhost:8000/estado/sensor/'+id;
+		var url = 'http://localhost:8000/estado/sensor/'+id;
 		if(initTimestamp!==undefined || lastTimestamp!==undefined){
 			url+="?";
 			if(initTimestamp!==undefined){

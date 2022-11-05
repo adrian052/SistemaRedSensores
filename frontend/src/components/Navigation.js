@@ -11,7 +11,7 @@ const Navigation =() => {
   const [onOff,setOnOff] = useState([]);
 
   const getData=(tipo,funcion)=>{
-		fetch(`https://localhost:8000/sensores/tipo/${tipo}/`
+		fetch(`http://localhost:8000/sensores/tipo/${tipo}/`
 		,{
 		  headers : { 
 			'Content-Type': 'application/json',
